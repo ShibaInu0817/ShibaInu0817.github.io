@@ -481,6 +481,16 @@ html:not(.paged) .bar{position:absolute}
 .totop:hover{border-color:#fff;background:rgba(255,255,255,.06)}
 .totop span{transition:transform .25s var(--ease)}
 .totop:hover span{transform:translateY(-3px)}
+/* contact: the Shiba (flipped avatar) in a circle; only its eyes are drawn (on top of an eyeless avatar) so they can follow the cursor */
+.contact .endrow{position:relative}
+.shiba{position:absolute;right:clamp(0px,3vw,48px);bottom:calc(100% + clamp(40px,8vh,90px));width:clamp(160px,17vw,230px);pointer-events:none}
+.shiba .face{position:relative;aspect-ratio:1;border-radius:50%;overflow:hidden;background:#252624;box-shadow:0 0 0 1px rgba(255,255,255,.14),0 18px 40px -18px rgba(0,0,0,.6);animation:shiba-bob 3.2s ease-in-out infinite}
+.shiba img,.shiba svg{position:absolute;inset:0;width:100%;height:100%}
+.shiba .eyes line{transition:transform .12s ease-out}
+.shiba .bubble{position:absolute;z-index:1;right:82%;top:-6%;width:max-content;max-width:15em;background:#fff;color:var(--ink);font-size:14px;font-weight:600;line-height:1.3;padding:9px 13px;border-radius:14px 14px 4px 14px;transition:opacity .15s}
+.shiba .bubble.swap{opacity:0}
+@keyframes shiba-bob{50%{transform:translateY(-6px) rotate(-2deg)}}
+@media(max-width:960px){.shiba{display:none}}
 
 /* email: the same stand-out button on the cover and on Contact */
 .btn.accent,.dark .btn.accent{background:var(--mint);color:var(--ink);border-color:var(--mint)}
@@ -886,8 +896,8 @@ function render() {
     </div>`,
     contact: `<div class="wrap contact">
       <div class="eyebrow" data-a>${t("contact")}</div><h2>${words(t("endH"))}</h2><p class="lead" data-a style="--d:3">${t("endP")}</p>
-      <div class="btns" data-a style="--d:5">${contacts.map(c => `<a class="btn ghost" href="${esc(c.href)}" target="_blank" rel="noopener">${esc(cname(c))} ↗</a>`).join("")}<a class="btn accent" href="mailto:${esc(pr.email)}"><span>${t("email")}</span> <i aria-hidden="true" style="font-style:normal">↗</i></a></div>
-      <div class="endrow" data-a style="--d:8"><small>${esc(pr.name)} · ${esc(tx(pr.role))}${todo(pr.interests) ? "" : " · " + esc(tx(pr.interests))}</small><button class="totop" type="button" data-go="top">${t("toTop")} <span aria-hidden="true">↑</span></button></div>
+      <div class="btns" data-a style="--d:5">${contacts.map(c => `<a class="btn ghost" href="${esc(c.href)}" target="_blank" rel="noopener" data-say="${esc(c.kind)}">${esc(cname(c))} ↗</a>`).join("")}<a class="btn accent" href="mailto:${esc(pr.email)}" data-say="email"><span>${t("email")}</span> <i aria-hidden="true" style="font-style:normal">↗</i></a></div>
+      <div class="endrow" data-a style="--d:8"><div class="shiba" aria-hidden="true"><div class="bubble">${esc(t("shibaHi"))}</div><div class="face"><img src="images/shiba.png" alt="" width="360" height="360"><svg viewBox="0 0 360 360"><g class="eyes" stroke="#292625" stroke-width="20" stroke-linecap="round"><line x1="251.5" y1="143.6" x2="279.7" y2="177.4"/><line x1="138.2" y1="239" x2="166.4" y2="272.8"/></g></svg></div></div><small>${esc(pr.name)} · ${esc(tx(pr.role))}${todo(pr.interests) ? "" : " · " + esc(tx(pr.interests))}</small><button class="totop" type="button" data-go="top">${t("toTop")} <span aria-hidden="true">↑</span></button></div>
     </div>`,
   };
   pagesEl.innerHTML = PAGES.slice(1).map(p => `<section class="page stage${p.dark ? " dark" : ""}${p.hobby ? " hobby" : ""}${seen.has(p.id) ? " in now" : ""}" id="${p.id}" data-page="${p.id}"><div class="pg">${p.html || html[p.id]}</div></section>`).join("");
@@ -1227,6 +1237,38 @@ document.addEventListener("click", e => {
   const l = e.target.closest("[data-lang]"); if (l) setLang(l.dataset.lang);
 });
 onLang(l => { lang = l; render(); });
+/* contact Shiba: eyes follow the cursor (and rest on the Email button with no cursor); the bubble changes while a button is hovered */
+{
+  let px = null, py = null, raf = 0;
+  const look = () => {
+    raf = 0;
+    const g = document.querySelector(".shiba .eyes");
+    if (!g || !g.getClientRects().length) return;
+    let x = px, y = py;
+    if (x === null) { const r = document.querySelector('.contact [data-say="email"]')?.getBoundingClientRect(); if (!r) return; x = r.left + r.width / 2; y = r.top + r.height / 2; }
+    const p = new DOMPoint(x, y).matrixTransform(g.getScreenCTM().inverse());
+    for (const l of g.children) {
+      const dx = p.x - (l.x1.baseVal.value + l.x2.baseVal.value) / 2, dy = p.y - (l.y1.baseVal.value + l.y2.baseVal.value) / 2;
+      const d = Math.hypot(dx, dy) || 1, k = Math.min(9, d / 12) / d; // at most 9 image px, less when the cursor is close
+      l.style.transform = `translate(${dx * k}px,${dy * k}px)`;
+    }
+  };
+  const q = () => { if (!raf) raf = requestAnimationFrame(look); };
+  addEventListener("pointermove", e => { if (e.pointerType === "touch") return; px = e.clientX; py = e.clientY; q(); }, { passive: true });
+  document.documentElement.addEventListener("pointerleave", () => { px = py = null; q(); });
+  addEventListener("resize", q);
+  addEventListener("transitionend", q); // page slides move the Shiba without a pointermove
+  const say = k => {
+    const b = document.querySelector(".shiba .bubble"); if (!b) return;
+    const s = k && UI["shiba_" + k] ? t("shiba_" + k) : t("shibaHi");
+    if (b.textContent === s) return;
+    b.classList.add("swap"); setTimeout(() => { b.textContent = s; b.classList.remove("swap"); }, 120);
+  };
+  const on = e => { const a = e.target.closest?.(".contact [data-say]"); if (a) say(a.dataset.say); };
+  const off = e => { const a = e.target.closest?.(".contact [data-say]"); if (a && !a.contains(e.relatedTarget)) say(null); };
+  document.addEventListener("pointerover", on); document.addEventListener("focusin", on);
+  document.addEventListener("pointerout", off); document.addEventListener("focusout", off);
+}
 addEventListener("hashchange", () => { const i = pageIndex(location.hash.slice(1)); if (i >= 0 && i !== idx) goTo(i); });
 render();
 { const h = location.hash.slice(1), i = pageIndex(h), p = find(h); if (i > 0) goTo(i); else if (p) { goTo(pageIndex(p.category === "tools" ? "tool" : p.category)); openSheet(p); } }

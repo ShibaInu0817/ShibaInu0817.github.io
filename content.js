@@ -831,6 +831,11 @@ export default {
     skillsP: { en: "The codes open the project each skill was used in.", zh: "点击编号可打开用到该技能的项目。" },
     endH: { en: "Let's |talk.|", zh: "聊聊 |吧。|" },
     endP: { en: "I'm reachable on LinkedIn, and my code is on GitHub.", zh: "可以通过 LinkedIn 联系我，代码都在 GitHub 上。" },
+    // the Shiba's speech bubble on Contact: shibaHi at rest, the others while a button is hovered
+    shibaHi: { en: "Leave a hi. I'll wag back.", zh: "打个招呼吧，我会摇尾巴回应。" },
+    shiba_github: { en: "My code lives here.", zh: "我的代码都在这里。" },
+    shiba_linkedin: { en: "DMs open.", zh: "私信开着。" },
+    shiba_email: { en: "Fastest way to reach me.", zh: "最快联系到我的方式。" },
     play: { en: "▶ Play now", zh: "▶ 立即游玩" },
     demo: { en: "▶ Live demo", zh: "▶ 在线演示" },
     site: { en: "Homepage", zh: "主页" },
