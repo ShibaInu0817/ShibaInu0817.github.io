@@ -497,59 +497,20 @@ html:not(.paged) .bar{position:absolute}
 <dialog id="sheet" aria-labelledby="sheet-title"></dialog>
 
 <script type="module">
-import { g as getData, p as pick, i as initLang, s as setLang, o as onLang, f as findSkill } from "./assets/dom-D8YLkuN8.js";
+import data from "./content.js";
 
-const data = getData();
-/* the standup bot is left out until it has real content */
-data.projects = data.projects.filter(p => p.code !== "TLS-02");
-data.profile.handle = "ShibaInu0817";
-data.profile.name = "Tee Tian Xiang";
-data.profile.education = [{ en: "BSc (Hons) Computer Science, University of Lincoln (dual award with KDU Penang University College), 2019", zh: "计算机科学荣誉学士，林肯大学（与 KDU 槟城大学学院双联），2019" }];
-/* channel template: the real story (copying channels made review impossible; worse with AI) */
-{
-  const w2 = data.projects.find(p => p.code === "WRK-02");
-  if (w2) {
-    w2.summary = { en: "A template that limits what a new channel can change, so review means reading one package.", zh: "一个限制新渠道可改动范围的模板，让审查只需阅读一个包。" };
-    w2.overview = { en: "Every new channel used to be a monorepo of several microservices, copied from the last one. Reviewers couldn't tell what was kept and what was changed, so they read everything, and AI-written copies drifted even further. On my own, I built a template that limits what a new channel can change.", zh: "过去每个新渠道都是一个包含多个微服务的单仓库，从上一个渠道复制而来。审查者分不清哪些保留、哪些改动，只能全部重读；AI 写出的副本偏离得更远。我独立构建了一个模板，限制新渠道可以改动的范围。" };
-    w2.points = [
-      { en: "Shared code for everything other than channel logic; a channel fills in a connector and two mappers.", zh: "除渠道逻辑之外的一切都是共享代码；渠道只需填写一个连接器和两个映射器。" },
-      { en: "Build-enforced boundaries: the build fails if shared code reaches into a channel.", zh: "由构建强制的边界：共享代码一旦依赖某个渠道，构建就会失败。" },
-      { en: "My own skill for creating a channel sets which files the AI agent may create or touch.", zh: "我自己编写的渠道创建技能规定 AI 代理可以创建或修改哪些文件。" },
-      { en: "One shared end-to-end suite runs the same scenarios on every channel, so no channel is tested differently.", zh: "同一套端到端测试对每个渠道运行相同的场景，不会有渠道被测得不一样。" },
-    ];
-    w2.result = { en: "The next channels were built on the template; older channels will move onto it.", zh: "之后的新渠道都基于这个模板构建；旧渠道也将迁移过来。" };
-    w2.gallery = (w2.gallery || []).filter(x => !/review\.svg$/.test(x.image));
-    w2.facts = [
-      { label: { en: "ROLE", zh: "角色" }, value: { en: "Back End Developer", zh: "后端开发工程师" } },
-      { label: { en: "YEAR", zh: "年份" }, value: { en: "2026", zh: "2026" } },
-      { label: { en: "NEW CHANNEL", zh: "新渠道" }, value: { en: "One package", zh: "一个包" } },
-      { label: { en: "TESTS", zh: "测试" }, value: { en: "Shared end-to-end suite", zh: "共用端到端测试" } },
-    ];
-  }
+/* language: saved choice, else the browser's; "oa:lang" key kept so returning visitors keep theirs */
+const LANGS = ["en", "zh"], langSubs = new Set();
+const pick = (v, l) => v == null ? "" : typeof v === "string" ? v : v[l] || v.en || "";
+function initLang() {
+  let saved = null; try { saved = JSON.parse(localStorage.getItem("oa:lang")); } catch {}
+  if (LANGS.includes(saved)) return saved;
+  for (const n of navigator.languages || []) { const l = String(n).toLowerCase(); if (l.startsWith("zh")) return "zh"; if (l.startsWith("en")) return "en"; }
+  return "en";
 }
-/* corrected omnichannel facts (the original data overstated ordering and understated the role) */
-{
-  const w1 = data.projects.find(p => p.code === "WRK-01");
-  if (w1) {
-    w1.summary = { en: "tawk.to's shared inbox: one place to answer every channel.", zh: "tawk.to 的共享收件箱：在一个地方回复所有渠道。" };
-    w1.overview = { en: "A support team answers live chat, Messenger, WhatsApp, email, SMS and Telegram from one inbox, with each customer's full history.", zh: "客服团队在同一个收件箱里回复在线聊天、Messenger、WhatsApp、邮件、短信和 Telegram，并能看到每位客户的完整历史。" };
-    w1.points = [];
-    w1.result = { en: "Five channels run on the core I built: Messenger, WhatsApp, Email, SMS and Telegram.", zh: "五个渠道运行在我构建的核心上：Messenger、WhatsApp、邮件、短信和 Telegram。" };
-    w1.facts = [
-      { label: { en: "ROLE", zh: "角色" }, value: { en: "Back End Developer", zh: "后端开发工程师" } },
-      { label: { en: "PERIOD", zh: "时间" }, value: { en: "Nov 2023 – present", zh: "2023 年 11 月至今" } },
-      { label: { en: "CHANNELS", zh: "渠道" }, value: { en: "5 on my core", zh: "我的核心上有 5 个" } },
-    ];
-    w1.links = { ...(w1.links || {}), product: "https://www.tawk.to/products/inbox/" };
-    w1.gallery = (w1.gallery || []).map(g => /channels\.svg$/.test(g.image) ? { ...g, caption: { en: "Five channels on one neutral core", zh: "五个渠道，一个中立核心" } } : g);
-  }
-  for (const b of data.profile.bio || []) {
-    if (/Facebook Messenger integration/.test(b.en || "")) {
-      b.en = "At tawk.to I built the backend of the omnichannel inbox end to end: the channel-neutral core and five channel integrations. Before tawk.to I led a team of 8–12 developers at Fusionex.";
-      b.zh = "在 tawk.to，我从头到尾构建了全渠道收件箱的后端：与渠道无关的核心，以及五个渠道集成。加入 tawk.to 之前，我在 Fusionex 带领一支 8–12 人的开发团队。";
-    }
-  }
-}
+function setLang(l) { if (!LANGS.includes(l)) return; try { localStorage.setItem("oa:lang", JSON.stringify(l)); } catch {} langSubs.forEach(f => f(l)); }
+const onLang = f => langSubs.add(f);
+const findSkill = (d, id) => { for (const g of d.skills) for (const s of g.items) if (s.id === id) return s; return null; };
 
 const $ = id => document.getElementById(id);
 const root = document.documentElement, bar = $("bar"), rail = $("rail"), cover = $("cover"), pagesEl = $("pages"), sheet = $("sheet");
@@ -557,130 +518,7 @@ let lang = initLang();
 const calm = matchMedia("(prefers-reduced-motion: reduce)");
 const small = matchMedia("(max-width: 900px), (max-height: 560px)");
 
-const UI = {
-  about: { en: "About", zh: "关于" }, work: { en: "Work", zh: "作品" }, games: { en: "Games", zh: "游戏" }, tools: { en: "Tools", zh: "工具" }, skills: { en: "Skills", zh: "技能" }, contact: { en: "Contact", zh: "联系" }, intro: { en: "Intro", zh: "首页" },
-  at: { en: "Backend Engineer at tawk.to", zh: "tawk.to 后端工程师" },
-  hi: { en: "Hi, I'm {name}.", zh: "你好，我是 {name}。" },
-  h1: { en: "I built the event-driven backend of the omnichannel inbox at tawk.to, ¶ a platform trusted by over § businesses.", zh: "我构建了 tawk.to 全渠道收件箱的事件驱动后端， ¶ 这是一个超过 § 家企业信赖的平台。" },
-  see: { en: "View my work", zh: "查看作品" }, email: { en: "Email", zh: "邮件" }, scroll: { en: "SCROLL", zh: "向下滚动" },
-  aboutH: { en: "Backend engineer with 7+ years in TypeScript and Node.js.", zh: "后端工程师，7 年以上 TypeScript 与 Node.js 经验。" },
-  xp: { en: "Experience", zh: "经历" }, aboutShort: { en: "A bit about me.", zh: "关于我。" }, aboutAi: { en: "I use Claude Code daily, inside guardrails I design: clear boundaries, every change reviewed, and tooling that keeps the architecture visible.", zh: "我每天使用 Claude Code，并在自己设计的约束内工作：清晰的边界、每一处改动都经过审查，以及让架构保持可见的工具。" },
-  toolTag: { en: "Claude Code skill", zh: "Claude Code 技能" },
-  toolWhat: { en: "A Claude Code skill that turns a codebase into an interactive C4 diagram in one HTML file.", zh: "一个 Claude Code 技能，把代码库变成单个 HTML 文件里的可交互 C4 架构图。" },
-  toolRows: [
-    { k: { en: "Problem", zh: "问题" }, v: { en: "With many services and queues, no single picture showed how a request moves through the system.", zh: "服务和队列一多，就没有一张图能说明一个请求如何在系统中流转。" } },
-    { k: { en: "My decision", zh: "我的决策" }, v: { en: "Read the code, not the docs, so the diagram can't inherit documentation that has gone out of date.", zh: "读代码，而不是读文档，这样图不会继承已经过时的文档。" } },
-    { k: { en: "In use", zh: "实际使用" }, v: { en: "The generated diagram is what we bring to design discussions at work. I regenerate it when the code changes.", zh: "在工作中，我们直接拿生成的图做设计讨论；代码有变更时我再重新生成。" } },
-    { k: { en: "How it was built", zh: "构建方式" }, v: { en: "Built with Claude Code inside guardrails I designed: the architecture, the rules and the checks. I reviewed every change.", zh: "在我设计的约束内用 Claude Code 构建：架构、规则和检查都由我制定，每一处改动由我审查。" } },
-  ],
-  toolSite: { en: "Project site", zh: "项目网站" },
-  story: [
-    { h: { en: "What it is", zh: "它是什么" }, p: [
-      { en: "draw-c4 is a Claude Code skill I built. You type /draw-c4 inside a repository, and it reads the source code (routes, config files, queues) and draws the system's architecture as a single web page.", zh: "draw-c4 是我做的一个 Claude Code 技能。在代码仓库里输入 /draw-c4，它会读取源代码（路由、配置文件、队列），把系统架构画成一个网页。" },
-      { en: "The page is a C4 diagram, a common way to draw software at zoom levels: from the whole system down to the parts inside one service. You click into each level, and press play to follow one request step by step through the code that handles it.", zh: "这个网页是一张 C4 架构图。C4 是常见的软件架构画法，按层级缩放：从整个系统，一直到某个服务内部的组件。你可以逐层点进去，也可以按播放，一步步跟着一个请求走过处理它的代码。" } ] },
-    { h: { en: "Why I built it", zh: "为什么做它" }, p: [
-      { en: "In a system with many services and queues, no single picture showed how a request actually moves through it, and hand-drawn diagrams go out of date. So I set one rule: draw only what the code proves. If it can't trace a connection to a file, a config entry or a route, it leaves it out.", zh: "服务和队列一多，就没有一张图能说明请求到底如何流转，手画的图也会过时。所以我定了一条规则：只画代码能证明的东西。追溯不到具体文件、配置项或路由的连接，一律不画。" } ] },
-    { h: { en: "Tested on a real project", zh: "在真实项目上验证" }, p: [
-      { en: "To test it on code I didn't write, I ran it on Immich, an open-source photo server. That diagram is the live demo. It mapped 18 background job queues and 4 request flows you can play step by step, such as backing up a photo.", zh: "为了在不是我写的代码上验证，我用它跑了开源照片服务器 Immich。那张图就是在线演示。它梳理出 18 个后台任务队列，以及 4 条可以逐步播放的请求流程，比如备份一张照片。" },
-      { en: "It also caught three places where Immich's own architecture page no longer matches the code:", zh: "它还发现了 Immich 官方架构页与代码不一致的三处：" } ],
-      ul: [
-        { en: "The docs show background jobs in a separate container. In the code, they run from the same image as the API.", zh: "文档里后台任务在独立容器中运行；代码里它们和 API 用的是同一个镜像。" },
-        { en: "The docs show a separate web server. In the code, the API serves the web app itself.", zh: "文档里有独立的 Web 服务器；代码里网页由 API 直接提供。" },
-        { en: "Redis does two jobs, the job queues and passing websocket messages between servers.", zh: "Redis 身兼两职：任务队列，以及在服务器之间传递 WebSocket 消息。" } ] },
-    { h: { en: "How I use it at work", zh: "我在工作中怎么用" }, p: [
-      { en: "We bring the generated diagram to design discussions. When someone changes the code, I regenerate it so the picture stays current.", zh: "我们拿生成的图来做设计讨论。有人改了代码，我就重新生成，让图保持最新。" } ] },
-    { h: { en: "How it was built", zh: "它是怎么做出来的" }, p: [
-      { en: "I built it with Claude Code, inside guardrails I designed: I set the architecture, the rules the agent works within and the checks it must pass, and I reviewed every change. Its built-in check catches broken references and overlapping boxes, but it can't tell whether a claim is wrong, so each new diagram still needs a human review.", zh: "我在自己设计的约束内用 Claude Code 构建了它：架构、AI 代理遵循的规则以及必须通过的检查都由我制定，每一处改动都由我审查。内置检查能发现失效的引用和重叠的方框，但判断不了结论是否正确，所以每张新图仍需要人工审阅。" } ] },
-  ],
-  tplCap: { en: "Before: a copied channel means reviewing every file. With the template: only the channel's own package, checked by the shared tests.", zh: "以前：复制出的渠道意味着要审查每个文件。使用模板后：只需审查渠道自己的包，并由共用测试检查。" },
-  tplRows: [
-    { k: { en: "Problem", zh: "问题" }, v: { en: "Each new channel was a monorepo of several microservices, copied from the last one, so <b>every review meant reading everything</b>. AI made the copies drift further.", zh: "每个新渠道都是一个包含多个微服务的单仓库，从上一个渠道复制而来，<b>每次审查都要全部重读</b>；AI 让副本偏离得更远。" } },
-    { k: { en: "What I built", zh: "我做了什么" }, v: { en: "A template I built on my own. It holds what channels share, <b>limits what a new channel can change</b>, and tests every channel the same way.", zh: "一个由我独立构建的模板：承载各渠道的共同部分，<b>限制新渠道的改动范围</b>，并用同一种方式测试每个渠道。" } },
-  ],
-  tplStory: [
-    { h: { en: "What it is", zh: "它是什么" }, p: [
-      { en: "Every new channel in tawk.to's omnichannel inbox is built on <b>one shared template</b>. The template holds everything the channels have in common, so a new channel only adds what makes it different. <b>I designed and built it on my own.</b>", zh: "tawk.to 全渠道收件箱的每个新渠道都建立在<b>同一个共享模板</b>之上。模板承载所有渠道的共同部分，新渠道只需补上自己与众不同的地方。<b>它由我独立设计和构建。</b>" } ] },
-    { h: { en: "Why it was hard", zh: "难在哪里" }, p: [
-      { en: "Before the template, <b>each new channel was a monorepo of several microservices, copied from the last channel</b> and then changed to fit. That was fast right up until review. A reviewer couldn't tell what was kept, what was changed and what should have been shared, so <b>every new channel meant reading everything again</b>.", zh: "在有模板之前，<b>每个新渠道都是一个包含多个微服务的单仓库，从上一个渠道复制而来</b>，再按需修改。这样写起来很快，直到审查的时候。审查者分不清哪些保留、哪些改动、哪些本该共享，所以<b>每个新渠道都要从头再读一遍</b>。" },
-      { en: "<b>AI coding made it worse.</b> Unless the developer holds it back, an agent happily changes far more than the task needs. Each copy drifted a little further from the last, and each review took longer.", zh: "<b>AI 编程让情况更糟。</b>除非开发者严格约束，AI 代理会改动远超任务所需的范围。每个副本都比上一个偏离得更远，审查也一次比一次更久。" } ] },
-    { h: { en: "How it works", zh: "工作原理" }, p: [
-      { en: "The idea is simple: <b>limit what a new channel is allowed to change.</b> Four pieces make that hold.", zh: "思路很简单：<b>限制新渠道可以改动的范围。</b>由四个部分来保证这一点。" } ],
-      ul: [
-        { en: "<b>Shared code for everything other than channel logic.</b> Webhook intake, the Temporal send workflow and the typed contracts between them live in the template. A channel fills in three slots: a connector to the channel's API, an inbound mapper and an outbound mapper.", zh: "<b>除渠道逻辑之外的一切都是共享代码。</b>Webhook 接收、Temporal 发送工作流以及它们之间的类型化契约都在模板里。渠道只需填写三个部分：对接渠道 API 的连接器、入站映射器和出站映射器。" },
-        { en: "<b>Build-enforced boundaries.</b> The build fails if shared code reaches into a channel, so channel-specific logic can't leak into the template.", zh: "<b>由构建强制的边界。</b>共享代码一旦依赖某个渠道，构建就会失败，渠道专属逻辑无法渗入模板。" },
-        { en: "<b>My own skill for creating a channel.</b> It's a Claude Code skill I wrote. The agent follows one procedure that lists the files it may create or touch, so its changes stay inside the channel's own package.", zh: "<b>我自己的渠道创建技能。</b>这是我编写的 Claude Code 技能。AI 代理遵循一份流程，其中列出它可以创建或修改的文件，让改动留在渠道自己的包里。" },
-        { en: "<b>A shared end-to-end suite.</b> Every channel fills in the same contracts, so the same scenarios test them all. That stopped a problem the team kept hitting: <b>one developer tested A and B in channel A, while another tested B and C in channel B</b>.", zh: "<b>共用的端到端测试。</b>所有渠道实现相同的契约，因此同一套场景可以测试全部渠道。这解决了团队一再遇到的问题：<b>一位开发者在渠道 A 测试 A 和 B，另一位在渠道 B 测试 B 和 C</b>。" } ],
-      code: true, imgs: true },
-    { h: { en: "Result", zh: "成果" }, p: [
-      { en: "The next channels were built on the template, and the older ones will move onto it. <b>Reviewing a new channel now means reading its own package.</b> The shared flows were reviewed once, and the same tests run against every channel.", zh: "之后的新渠道都基于模板构建，旧渠道也将迁移过来。<b>现在审查一个新渠道，只需阅读它自己的包。</b>共享流程只审查过一次，同一套测试覆盖每个渠道。" },
-      { en: "The skill is the same kind of tool as my draw-c4-skill: <b>written rules that keep an AI agent's work reviewable.</b>", zh: "这个技能和我的 draw-c4-skill 是同一类工具：<b>用书面规则让 AI 代理的产出可以被审查。</b>" } ] },
-    { h: { en: "What went wrong", zh: "踩过的坑" }, p: [
-      { en: "<b>The template is never finished.</b> One channel brings features A, B and C; the next one needs D. So the template keeps changing, and it has to.", zh: "<b>模板永远不会完成。</b>一个渠道带来功能 A、B、C，下一个又需要 D。所以模板一直在变，而且必须如此。" },
-      { en: "That puts the weight on people. Developers need to <b>pull template changes regularly</b>, and to notice when a change falls outside the channel's own area and really belongs in the template. No build rule can make that call. <b>It takes team practice.</b>", zh: "这让责任落在人身上。开发者需要<b>定期拉取模板的更新</b>，并能察觉某个改动超出了渠道自己的范围、其实应该放进模板。没有任何构建规则能替你做这个判断。<b>它需要团队的习惯。</b>" } ] },
-  ],
-  codeCap: { en: "Not real code: only the shape of what a new channel fills in", zh: "并非真实代码：仅示意新渠道需要填写的部分" },
-  seeProduct: { en: "See the product", zh: "查看产品" },
-  ibxCap: { en: "Messages from every channel land in one inbox; each reply goes back out through the customer's own channel.", zh: "各渠道的消息汇入同一个收件箱；每条回复都会从客户原来的渠道发回去。" },
-  ibxRows: [
-    { k: { en: "What it is", zh: "它是什么" }, v: { en: "tawk.to's shared inbox: a support team answers every channel in one place.", zh: "tawk.to 的共享收件箱：客服团队在一个地方回复所有渠道。" } },
-    { k: { en: "My part", zh: "我的部分" }, v: { en: "Part of every step, from requirements and event storming to the architecture. Then I built the backend end to end: the channel-neutral core and five channel integrations.", zh: "参与了从需求、事件风暴到架构设计的每一步，然后从头到尾构建了后端：与渠道无关的核心和五个渠道集成。" } },
-    { k: { en: "Key decisions", zh: "关键设计" }, v: { en: "A channel-neutral core, Kafka for intake, handlers safe to run twice, and Temporal for sending.", zh: "与渠道无关的核心、用 Kafka 接收、可安全重复执行的处理程序、用 Temporal 发送。" } },
-  ],
-  ibxSummary: [0, 1],
-  ibxStory: [
-    { h: { en: "What it is", zh: "它是什么" }, p: [
-      { en: "The omnichannel inbox is <b>tawk.to's shared inbox</b>. A support team answers live chat, Messenger, WhatsApp, email, SMS and Telegram from one place, and every conversation stays under one customer, with its full history.", zh: "全渠道收件箱是 <b>tawk.to 的共享收件箱</b>。客服团队在一个地方回复在线聊天、Messenger、WhatsApp、邮件、短信和 Telegram，每段对话都归在同一位客户名下，保留完整历史。" },
-      { en: "Before it, tawk.to had live chat and tickets, but nowhere to hold conversations from outside channels. After gathering requirements with stakeholders and about four months of event storming with the team, <b>I built the backend end to end</b>: the channel-neutral core and the five channel integrations.", zh: "在此之前，tawk.to 只有在线聊天和工单，无法承载来自外部渠道的对话。在与相关方梳理需求、并与团队进行约四个月的事件风暴之后，<b>我从头到尾构建了后端</b>：与渠道无关的核心，以及五个渠道集成。" } ] },
-    { h: { en: "Why it was hard", zh: "难在哪里" }, p: [
-      { en: "Every outside channel works differently, and <b>none of them is under our control</b>. Their webhooks can arrive more than once. A reply can fail halfway through sending.", zh: "每个外部渠道的机制都不一样，而且<b>没有一个在我们的控制之下</b>。它们的 Webhook 可能重复送达，回复也可能在发送途中失败。" },
-      { en: "The inbox still has to <b>show each message once and get every reply out</b>. A customer doesn't care which channel misbehaved.", zh: "收件箱仍然必须<b>让每条消息只出现一次，并把每条回复送出去</b>。客户不会在意是哪个渠道出了问题。" } ] },
-    { h: { en: "How it works", zh: "工作原理" }, p: [
-      { en: "I was part of the design from the first requirement to the final architecture, and I built all of it. To set up the repo for microservices, I studied the popular public Nx + NestJS monorepos and adapted their structure. The design comes down to four ideas.", zh: "我从最初的需求到最终的架构全程参与设计，并实现了全部内容。为了把仓库搭建成微服务结构，我研究了主流的公开 Nx + NestJS 单仓库项目，并借鉴了它们的结构。整个设计可以归结为四个要点。" } ],
-      ul: [
-        { en: "<b>A channel-neutral core.</b> The core never needs to know which channel a message came from. Each channel plugs in through its own adapter, so adding one doesn't change the core.", zh: "<b>与渠道无关的核心。</b>核心不需要知道消息来自哪个渠道。每个渠道通过自己的适配器接入，新增渠道不需要改动核心。" },
-        { en: "<b>Kafka for intake.</b> Incoming webhooks go onto Kafka and are acknowledged straight away, then processed, so a slow step further down never keeps the channel waiting.", zh: "<b>用 Kafka 接收。</b>收到的 Webhook 先写入 Kafka 并立即确认，再进行处理，后面的步骤再慢也不会让渠道一直等待。" },
-        { en: "<b>Safe to run twice.</b> A webhook that arrives again changes nothing, so a repeat never shows up as a duplicate message.", zh: "<b>可安全重复执行。</b>重复送达的 Webhook 不会产生任何变化，所以不会出现重复消息。" },
-        { en: "<b>Temporal for sending.</b> Each reply is sent by a workflow that records every finished step. When something fails, it <b>resumes from the step that failed</b> instead of starting over.", zh: "<b>用 Temporal 发送。</b>每条回复由一个工作流发送，它记录每个已完成的步骤。出错时，它<b>从失败的那一步继续</b>，而不是从头再来。" } ],
-      imgs: true },
-    { h: { en: "Result", zh: "成果" }, p: [
-      { en: "<b>Facebook Messenger went live first</b>, then WhatsApp, Email, SMS and Telegram: <b>five channels on the core I built</b>. Live chat, tawk.to's original product, sits beside them in the same inbox.", zh: "<b>Facebook Messenger 最先上线</b>，随后是 WhatsApp、邮件、短信和 Telegram：<b>五个渠道都运行在我构建的核心上</b>。tawk.to 最初的产品在线聊天，也在同一个收件箱里。" } ],
-      link: "product" },
-    { h: { en: "What went wrong", zh: "踩过的坑" }, p: [
-      { en: "This was <b>our first project on NestJS in a monorepo</b>, built on domain-driven design, event-driven design and clean architecture. Some of those ideas clashed with how NestJS organises code, especially its modules. <b>The code got harder to change</b>: domain logic leaked into framework code, and a small change touched too many files.", zh: "这是<b>我们第一个基于 NestJS 和单仓库的项目</b>，采用了领域驱动设计、事件驱动设计和整洁架构。其中一些理念与 NestJS 组织代码的方式冲突，尤其是它的模块设计。<b>代码变得难改</b>：领域逻辑渗进了框架代码，一个小改动要牵动太多文件。" },
-      { en: "We reshaped the Nest modules to follow our <b>bounded contexts</b> instead of the framework's default layout, and made the build enforce the boundaries between them.", zh: "我们把 Nest 模块改为按<b>限界上下文</b>划分，而不是沿用框架默认的结构，并让构建强制执行它们之间的边界。" },
-      { en: "Validation was the other clash. We needed the same rules in a legacy JavaScript app and the new NestJS app, partly to read events the old system still sends. NestJS's default, class-validator, works through decorators on TypeScript classes, which the JavaScript side can't share. So we <b>switched to TypeBox</b>: its schemas are plain JSON Schema objects that both apps can use.", zh: "另一个冲突是校验。我们需要在旧的 JavaScript 应用和新的 NestJS 应用里使用同一套规则，部分原因是要读取旧系统仍在发出的事件。NestJS 默认的 class-validator 依赖 TypeScript 类上的装饰器，JavaScript 那边无法共用。所以我们<b>改用了 TypeBox</b>：它的 schema 是普通的 JSON Schema 对象，两个应用都能用。" } ] },
-  ],
-  summaryH: { en: "Summary", zh: "概要" },
-  filmCap: { en: "The 47-second film: from a repository to a diagram you can walk through.", zh: "47 秒短片：从一个代码仓库，到一张可以逐步浏览的架构图。" },
-  openDemo: { en: "Open the Immich demo", zh: "打开 Immich 演示" },
-  toolResult: { en: "Run on Immich, an open-source project, the diagram disagreed with Immich's own architecture page in three places.", zh: "在开源项目 Immich 上运行后，生成的图与 Immich 官方架构页有三处不一致。" },
-  facets: [{ en: "Stack", zh: "技术栈" }, { en: "Projects", zh: "项目" }, { en: "Practices", zh: "实践" }, { en: "Interests", zh: "兴趣" }],
-  pick: { en: "Pick a tile to see where I used it.", zh: "点击方块，查看用在哪里。" }, inGroup: { en: "My day-to-day stack", zh: "我的日常技术栈" }, openP: { en: "Open project", zh: "打开项目" }, now: { en: "Now", zh: "现在" }, before: { en: "Before", zh: "此前" },
-  role1: { en: "Back End Developer", zh: "后端开发工程师" }, role2: { en: "Senior Consultant", zh: "高级顾问" }, role3: { en: "Junior Software Engineer", zh: "初级软件工程师" },
-  when1: { en: "2023 – now", zh: "2023 至今" }, when2: { en: "2021 – 2023", zh: "2021 – 2023" }, when3: { en: "2019 – 2021", zh: "2019 – 2021" },
-  eduH: { en: "Education", zh: "教育背景" }, edu: { en: "BSc (Hons) Computer Science, University of Lincoln, dual award with KDU Penang University College, 2019. Dean's List.", zh: "计算机科学荣誉学士，林肯大学（与 KDU 槟城大学学院双联学位），2019。院长嘉许名单。" },
-  xp1: { en: "Built the backend of the omnichannel inbox end to end: the channel-neutral core and five channel integrations. NestJS, Temporal, Kafka, MongoDB.", zh: "从头到尾构建了全渠道收件箱的后端：与渠道无关的核心和五个渠道集成。NestJS、Temporal、Kafka、MongoDB。" },
-  xp2: { en: "Led a team of 8–12 developers. Reworked the application architecture and moved projects from Node.js to TypeScript.", zh: "带领一支 8–12 人的开发团队。重整应用架构，并把项目从 Node.js 迁移到 TypeScript。" },
-  xp3: { en: "Built web apps front to back and their REST APIs in a Scrum team.", zh: "在 Scrum 团队中前后端开发 Web 应用及其 REST API。" },
-  st: [{ n: 7, suf: "+", en: "years of TypeScript and Node.js", zh: "年 TypeScript 与 Node.js 经验" }, { n: 5, suf: "", en: "channels running on the core I built", zh: "个渠道运行在我构建的核心上" }, { n: 8, suf: "–12", en: "developers led at Fusionex", zh: "人的开发团队，由我在 Fusionex 带领" }],
-  caseStudy: { en: "Full case study", zh: "完整案例" }, details: { en: "Details", zh: "详情" },
-  toTop: { en: "Back to top", zh: "回到顶部" },
-  hobby: { en: "Hobby", zh: "业余" },
-  hobbyEy: { en: "Outside work · hobby projects", zh: "工作之外 · 业余项目" },
-  hobbyH: { en: "After hours, I build games.", zh: "下班后，我做游戏。" },
-  hobbyP: { en: "Not part of my day job. Small games I design, build and ship on my own, playable in the browser right now.", zh: "与日常工作无关。这些是我独立设计、开发并发布的小游戏，现在就能在浏览器里玩。" },
-  hobbyEng: {
-    "GME-01": { en: "No server: a Canvas platformer that installs as a PWA, with regression tests in a real browser.", zh: "无需服务器：一款 Canvas 平台跳跃游戏，可作为 PWA 安装，并在真实浏览器中跑回归测试。" },
-    "GME-02": { en: "A real-time server runs rooms, bots and turn timers over Socket.IO. A new mystery is a data pack, not new code.", zh: "实时服务器通过 Socket.IO 处理房间、机器人和回合计时。新的谜案只是一个数据包，不需要新代码。" },
-    "GME-03": { en: "A 3D board in Three.js. Online rooms sync over MQTT, with each player on their own device.", zh: "用 Three.js 做的 3D 棋盘。在线房间通过 MQTT 同步，每位玩家用自己的设备加入。" },
-  },
-  gamesH: { en: "Games I built. Play them right now.", zh: "我做的游戏，现在就能玩。" }, toolsH: { en: "Tools for other developers.", zh: "为其他开发者做的工具。" },
-  skillsH: { en: "What I work with.", zh: "我使用的技术。" }, skillsP: { en: "The codes open the project each skill was used in.", zh: "点击编号可打开用到该技能的项目。" },
-  endH: { en: "Let's |talk.|", zh: "聊聊 |吧。|" }, endP: { en: "I'm reachable on LinkedIn, and my code is on GitHub.", zh: "可以通过 LinkedIn 联系我，代码都在 GitHub 上。" },
-  play: { en: "▶ Play now", zh: "▶ 立即游玩" }, demo: { en: "▶ Live demo", zh: "▶ 在线演示" }, site: { en: "Homepage", zh: "主页" }, github: { en: "GitHub", zh: "GitHub" },
-  ovw: { en: "Overview", zh: "简介" }, result: { en: "Result", zh: "成果" }, stack: { en: "Tech stack", zh: "技术栈" }, frame: { en: "Frame", zh: "画面" },
-  close: { en: "Close", zh: "关闭" }, prev: { en: "Previous", zh: "上一个" }, next: { en: "Next", zh: "下一个" }, prevF: { en: "Previous frame", zh: "上一画面" }, nextF: { en: "Next frame", zh: "下一画面" },
-};
+const UI = data.text;
 const t = k => UI[k][lang] || UI[k].en;
 const tx = v => pick(v, lang);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -710,7 +548,7 @@ function linkBtns(p, more) {
   const order = ["play", "demo", "site", "github"].filter(k => p.links?.[k]);
   return order.map((k, i) => `<a class="sm${i === 0 && (k === "play" || k === "demo") ? " main" : ""}" href="${esc(p.links[k])}" target="_blank" rel="noopener">${t(k)}</a>`).join("")
     + (p.links?.product ? `<a class="sm" href="${esc(p.links.product)}" target="_blank" rel="noopener">${t("seeProduct")} ↗</a>` : "")
-    + (p.code === "TLS-01" ? `<a class="sm" href="https://shibainu0817.github.io/draw-c4-skill/" target="_blank" rel="noopener">${t("toolSite")}</a>` : "")
+    + (p.links?.toolSite ? `<a class="sm" href="${esc(p.links.toolSite)}" target="_blank" rel="noopener">${t("toolSite")}</a>` : "")
     + (more ? `<button class="sm" type="button" data-open="${slug(p)}">${p.category === "work" ? t("caseStudy") : t("details")} →</button>` : "");
 }
 const factList = f => `<dl class="facts">${f.filter(x => !todo(x)).map(x => `<div><dt>${esc(tx(x.label))}</dt><dd>${esc(tx(x.value))}</dd></div>`).join("")}</dl>`;
@@ -718,12 +556,12 @@ const factList = f => `<dl class="facts">${f.filter(x => !todo(x)).map(x => `<di
 function inboxPage(p) {
   const stack = (p.stack || []).map(id => findSkill(data, id)?.name || id);
   return `<div class="wrap case">
-    <div class="media"><button class="clip ibx-clip" type="button" data-open="${slug(p)}" data-a style="--d:0" aria-label="${esc(tx(p.name))}: ${esc(t("ibxCap"))}"><div class="ibx-host"></div></button></div>
+    <div class="media"><button class="clip ibx-clip" type="button" data-open="${slug(p)}" data-a style="--d:0" aria-label="${esc(tx(p.name))}: ${esc(tx(p.caption))}"><div class="ibx-host"></div></button></div>
     <div>
-      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${esc(tx(p.chip))} · tawk.to</div>
+      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${esc(tx(p.chip))}${p.org ? " · " + esc(p.org) : ""}</div>
       <h2>${words(tx(p.name))}</h2>
       <p class="ov" data-a style="--d:3">${esc(tx(p.overview))}</p>
-      <dl class="rows">${UI.ibxRows.slice(1).map((r, k) => `<div data-a style="--d:${4 + k}"><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}</dl>
+      <dl class="rows">${p.rows.slice(1).map((r, k) => `<div data-a style="--d:${4 + k}"><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}</dl>
       <p class="res" data-a style="--d:7">${esc(tx(p.result))}</p>
       <div class="tokens" data-a style="--d:8">${stack.map(s => `<span>${esc(s)}</span>`).join("")}</div>
       <div class="acts" data-a style="--d:9">${linkBtns(p, true)}</div>
@@ -731,8 +569,8 @@ function inboxPage(p) {
   </div>`;
 }
 function casePage(p, n) {
-  if (p.code === "WRK-01") return inboxPage(p);
-  if (p.code === "WRK-02") return tplPage(p);
+  if (p.layout === "inbox") return inboxPage(p);
+  if (p.layout === "template") return tplPage(p);
   const pts = (p.points || []).filter(x => !todo(x)), stack = (p.stack || []).map(id => findSkill(data, id)?.name || id), g = p.gallery || [];
   return `<div class="wrap case${n % 2 ? " flip" : ""}">
     <div class="media">
@@ -740,7 +578,7 @@ function casePage(p, n) {
       ${g.length > 2 ? `<div class="more" data-a style="--d:5">${g.slice(1, 4).map((x, k) => `<button type="button" data-open="${slug(p)}" data-at="${k + 1}" aria-label="${esc(tx(x.caption))}"><img src="${esc(x.image)}" alt=""></button>`).join("")}</div>` : ""}
     </div>
     <div>
-      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${esc(tx(p.chip))} · tawk.to</div>
+      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${esc(tx(p.chip))}${p.org ? " · " + esc(p.org) : ""}</div>
       <h2>${words(tx(p.name))}</h2>
       <p class="ov" data-a style="--d:3">${esc(tx(p.overview))}</p>
       <ol class="pts">${pts.map((x, k) => `<li data-a style="--d:${4 + k}"><span>${esc(tx(x))}</span></li>`).join("")}</ol>
@@ -758,22 +596,22 @@ function toolPage(p) {
       ${shots.length > 2 ? `<div class="more" data-a style="--d:5">${shots.slice(1, 4).map(x => `<button type="button" data-open="${slug(p)}" data-at="${g.indexOf(x)}" aria-label="${esc(tx(x.caption))}"><img src="${esc(x.image)}" alt=""></button>`).join("")}</div>` : ""}
     </div>
     <div>
-      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${t("toolTag")}</div>
+      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${esc(tx(p.tag))}</div>
       <h2>${words(tx(p.name))}</h2>
-      <p class="ov" data-a style="--d:3">${t("toolWhat")}</p>
-      <dl class="rows">${UI.toolRows.map((r, k) => `<div data-a style="--d:${4 + k}"><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}</dl>
-      <p class="res" data-a style="--d:8">${t("toolResult")}</p>
+      <p class="ov" data-a style="--d:3">${tx(p.what)}</p>
+      <dl class="rows">${p.rows.map((r, k) => `<div data-a style="--d:${4 + k}"><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}</dl>
+      <p class="res" data-a style="--d:8">${tx(p.resultLine)}</p>
       <div class="acts" data-a style="--d:9">${linkBtns(p, true)}</div>
     </div>
   </div>`;
 }
 /* the draw-c4 details: a plain explanation in reading order */
 function toolStory(p) {
-  return `<div class="story">${UI.story.map(sec => `<section>
+  return `<div class="story">${p.story.map(sec => `<section>
       <h3>${tx(sec.h)}</h3>
       ${sec.p.map(x => `<p>${tx(x)}</p>`).join("")}
       ${sec.ul ? `<ul>${sec.ul.map(x => `<li>${tx(x)}</li>`).join("")}</ul>` : ""}
-      ${sec === UI.story[2] && p.links?.demo ? `<a class="sm main" href="${esc(p.links.demo)}" target="_blank" rel="noopener">▶ ${t("openDemo")}</a>` : ""}
+      ${sec === p.story[2] && p.links?.demo ? `<a class="sm main" href="${esc(p.links.demo)}" target="_blank" rel="noopener">▶ ${t("openDemo")}</a>` : ""}
     </section>`).join("")}</div>`;
 }
 /* ---------- the omnichannel inbox animation (original, in the site's own style) ---------- */
@@ -943,9 +781,9 @@ const TPL_CODE = `<span class="c">// Not real code: just the shape of a channel 
 function tplPage(p) {
   const pts = (p.points || []).filter(x => !todo(x)), stack = (p.stack || []).map(id => findSkill(data, id)?.name || id);
   return `<div class="wrap case flip">
-    <div class="media"><button class="clip tpl-clip" type="button" data-open="${slug(p)}" data-a style="--d:0" aria-label="${esc(tx(p.name))}: ${esc(tx(UI.tplCap))}"><div class="tpl-host"></div></button></div>
+    <div class="media"><button class="clip tpl-clip" type="button" data-open="${slug(p)}" data-a style="--d:0" aria-label="${esc(tx(p.name))}: ${esc(tx(p.caption))}"><div class="tpl-host"></div></button></div>
     <div>
-      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${esc(tx(p.chip))} · tawk.to</div>
+      <div class="eyebrow" data-a style="--d:1">${esc(p.code)} · ${esc(tx(p.chip))}${p.org ? " · " + esc(p.org) : ""}</div>
       <h2>${words(tx(p.name))}</h2>
       <p class="ov" data-a style="--d:3">${esc(tx(p.overview))}</p>
       <ol class="pts">${pts.map((x, k) => `<li data-a style="--d:${4 + k * .5}"><span>${esc(tx(x))}</span></li>`).join("")}</ol>
@@ -974,7 +812,7 @@ function hobbyPage() {
     <div class="head"><div><h2>${words(t("hobbyH"))}</h2><p class="hobby-p" data-a style="--d:3">${t("hobbyP")}</p></div></div>
     <div class="cards" style="--n:${list.length}">${list.map((p, k) => `<article class="card" data-a style="--d:${4 + k * 1.5}"><div class="lift">
       <button class="shot" type="button" data-open="${slug(p)}" aria-label="${esc(tx(p.name))}"><img src="${esc(p.gallery.find(x => !/\.svg$/.test(x.image) && !x.video)?.image || cover_(p))}" alt=""><span class="tag">${esc((p.stack || []).map(id => findSkill(data, id)?.name || id).join(" · "))}</span></button>
-      <div class="txt"><h3>${esc(tx(p.name))}</h3><p>${esc(tx(UI.hobbyEng[p.code] || p.summary))}</p><div class="acts">${linkBtns(p, true)}</div></div>
+      <div class="txt"><h3>${esc(tx(p.name))}</h3><p>${esc(tx(p.blurb || p.summary))}</p><div class="acts">${linkBtns(p, true)}</div></div>
     </div></article>`).join("")}</div>
   </div>`;
 }
@@ -989,8 +827,7 @@ function cardPage(cat, title) {
   </div>`;
 }
 
-/* tawk.to's own published figure: "Trusted by 6M+ businesses" (tawk.to homepage) */
-const USERS = 6000000;
+const USERS = data.stats.businesses;
 let PAGES = [];
 function render() {
   const pr = data.profile, bio = pr.bio.filter(b => !todo(b)), work = byCat("work");
@@ -1008,7 +845,7 @@ function render() {
   bar.innerHTML = `<div class="wrap">
     <a class="brand" href="#top" data-go="top"><img src="images/avatar.jpg" alt="">${esc(pr.handle || pr.name)}</a>
     <nav class="links" aria-label="Sections">${["about", "work", "skills", "hobby", "contact"].map(k => `<a href="#${k}" data-go="${k}">${t(k)}</a>`).join("")}</nav>
-    <a class="email" href="mailto:kyoxiang99@gmail.com"><span>${t("email")}</span> <i aria-hidden="true">↗</i></a>
+    <a class="email" href="mailto:${esc(pr.email)}"><span>${t("email")}</span> <i aria-hidden="true">↗</i></a>
     <div class="seg" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="${lang === "en"}">EN</button><button type="button" data-lang="zh" aria-pressed="${lang === "zh"}">中</button></div>
   </div>`;
   rail.innerHTML = PAGES.map((p, n) => `<button type="button" data-go="${p.id}" aria-label="${esc(p.label)}"><span>${esc(p.label)}</span>${String(n + 1).padStart(2, "0")}</button>`).join("");
@@ -1020,7 +857,7 @@ function render() {
       <p class="hi" data-a style="--d:2">${esc(t("hi").replace("{name}", pr.name))}</p>
       <h1>${words(t("h1")).replace(/<span class="w"([^>]*)>¶<\/span>/, "<br>").replace(/<span class="w"([^>]*)>§<\/span>/, `<span class="w"$1><em class="num" data-n="${USERS}" data-suf="" data-dur="1800">${USERS.toLocaleString("en-US")}</em></span>`)}</h1>
       <p class="sub" data-a style="--d:14">${esc(tx(bio[0]))}</p>
-      <div class="btns" data-a style="--d:16"><a class="btn" href="#work" data-go="work">${t("see")} <span aria-hidden="true">↓</span></a>${contacts.map(c => `<a class="btn ghost" href="${esc(c.href)}" target="_blank" rel="noopener">${esc(cname(c))} ↗</a>`).join("")}<a class="btn accent" href="mailto:kyoxiang99@gmail.com"><span>${t("email")}</span> <i aria-hidden="true" style="font-style:normal">↗</i></a></div>
+      <div class="btns" data-a style="--d:16"><a class="btn" href="#work" data-go="work">${t("see")} <span aria-hidden="true">↓</span></a>${contacts.map(c => `<a class="btn ghost" href="${esc(c.href)}" target="_blank" rel="noopener">${esc(cname(c))} ↗</a>`).join("")}<a class="btn accent" href="mailto:${esc(pr.email)}"><span>${t("email")}</span> <i aria-hidden="true" style="font-style:normal">↗</i></a></div>
     </div></div>
     <div class="peek">${peek.map((p, k) => `<button type="button" data-open="${slug(p)}" data-a style="--d:${11 + k * 1.5}" aria-label="${esc(tx(p.name))}"><img src="${esc(p.gallery.find(x => !/\.svg$/.test(x.image) && !x.video)?.image || cover_(p))}" alt=""></button>`).join("")}</div>
     <button class="hint" type="button" data-go="about"><i></i>${t("scroll")}</button>`;
@@ -1037,13 +874,11 @@ function render() {
       <div class="about">
         <div><div class="eyebrow" data-a>${t("xp")}</div><h2>${words(t("aboutH"))}</h2>${bio.slice(1).map((b, k) => `<p data-a style="--d:${5 + k * 2}">${esc(tx(b))}</p>`).join("")}</div>
         <div><div class="xp" style="margin-top:8px">
-          <article data-a style="--d:5"><span class="when">${t("when1")}</span><div><h3>tawk.to<span>${t("role1")}</span></h3><p>${t("xp1")}</p></div></article>
-          <article data-a style="--d:6"><span class="when">${t("when2")}</span><div><h3>Fusionex<span>${t("role2")}</span></h3><p>${t("xp2")}</p></div></article>
-          <article data-a style="--d:7"><span class="when">${t("when3")}</span><div><h3>Kerry Logistics<span>${t("role3")}</span></h3><p>${t("xp3")}</p></div></article>
-          <p class="edu" data-a style="--d:8"><b>${t("eduH")}</b>${t("edu")}</p>
+          ${data.experience.map((x, k) => `<article data-a style="--d:${5 + k}"><span class="when">${tx(x.when)}</span><div><h3>${esc(x.company)}<span>${tx(x.role)}</span></h3><p>${tx(x.text)}</p></div></article>`).join("")}
+          <p class="edu" data-a style="--d:8"><b>${t("eduH")}</b>${tx(pr.education)}</p>
         </div></div>
       </div>
-      <dl class="nums">${UI.st.map((s, k) => `<div data-a style="--d:${9 + k * 2}"><dt data-n="${s.n}" data-suf="${s.suf}">${s.n}${s.suf}</dt><dd>${esc(s[lang] || s.en)}</dd></div>`).join("")}</dl>
+      <dl class="nums">${data.stats.highlights.map((s, k) => `<div data-a style="--d:${9 + k * 2}"><dt data-n="${s.n}" data-suf="${s.suf}">${s.n}${s.suf}</dt><dd>${esc(s[lang] || s.en)}</dd></div>`).join("")}</dl>
     </div>`,
     skills: `<div class="wrap">
       <div class="eyebrow" data-a>${t("skills")}</div><h2>${words(t("skillsH"))}</h2><p class="lead" data-a style="--d:3">${t("skillsP")}</p>
@@ -1051,7 +886,7 @@ function render() {
     </div>`,
     contact: `<div class="wrap contact">
       <div class="eyebrow" data-a>${t("contact")}</div><h2>${words(t("endH"))}</h2><p class="lead" data-a style="--d:3">${t("endP")}</p>
-      <div class="btns" data-a style="--d:5">${contacts.map(c => `<a class="btn ghost" href="${esc(c.href)}" target="_blank" rel="noopener">${esc(cname(c))} ↗</a>`).join("")}<a class="btn accent" href="mailto:kyoxiang99@gmail.com"><span>${t("email")}</span> <i aria-hidden="true" style="font-style:normal">↗</i></a></div>
+      <div class="btns" data-a style="--d:5">${contacts.map(c => `<a class="btn ghost" href="${esc(c.href)}" target="_blank" rel="noopener">${esc(cname(c))} ↗</a>`).join("")}<a class="btn accent" href="mailto:${esc(pr.email)}"><span>${t("email")}</span> <i aria-hidden="true" style="font-style:normal">↗</i></a></div>
       <div class="endrow" data-a style="--d:8"><small>${esc(pr.name)} · ${esc(tx(pr.role))}${todo(pr.interests) ? "" : " · " + esc(tx(pr.interests))}</small><button class="totop" type="button" data-go="top">${t("toTop")} <span aria-hidden="true">↑</span></button></div>
     </div>`,
   };
@@ -1261,14 +1096,12 @@ async function playBoard(run) {
 }
 
 /* ---------- about orbit ---------- */
-/* official logo files, used unmodified; add a file under images/logos and list it here */
-const LOGOS = { typescript: "images/logos/typescript.svg", nodejs: "images/logos/nodejs.svg", nestjs: "images/logos/nestjs.svg", kafka: "images/logos/kafka.svg", mongodb: "images/logos/mongodb.svg", temporal: "images/logos/temporal.svg" };
 /* the Temporal file has wide empty margins around the symbol, so it is shown larger to match the others */
 const LOGO_ZOOM = { temporal: 2.5 };
 const TINTS = [["#121815", "#fff"], ["#0d7a5f", "#fff"], ["#ffffff", "#121815"], ["#5fd0b1", "#0b2a22"], ["#3a4741", "#fff"], ["#dba970", "#2a1c0c"]];
 function facetItems(k) {
-  const sk = id => { const x = findSkill(data, id); return { id, name: x.name, sub: x.years ? tx(x.years) : "", note: x.note && !todo(x.note) ? tx(x.note) : "", used: usedIn[id] }; };
-  if (k === 0) return ["typescript", "nodejs", "nestjs", "kafka", "temporal", "mongodb"].map(sk);
+  const sk = id => { const x = findSkill(data, id); return { id, name: x.name, logo: x.logo, sub: x.years ? tx(x.years) : "", note: x.note && !todo(x.note) ? tx(x.note) : "", used: usedIn[id] }; };
+  if (k === 0) return data.dailyStack.map(sk);
   return [];
 }
 const orb = { group: 0, items: [], tiles: [], rot: 0, pin: null, hover: false, on: false, last: 0, gen: 0 };
@@ -1277,7 +1110,7 @@ function buildOrbit(pop, hold) {
   const ring = $("ring"); if (!ring) return;
   const gen = ++orb.gen;
   orb.items = facetItems(orb.group); orb.pin = null;
-  ring.innerHTML = orb.items.map((it, k) => { const c = TINTS[k % TINTS.length], logo = LOGOS[it.id]; return logo
+  ring.innerHTML = orb.items.map((it, k) => { const c = TINTS[k % TINTS.length], logo = it.logo; return logo
     ? `<button class="tile has-logo" type="button" data-item="${k}" style="--c:#fff;--t:#121815"><img src="${logo}" alt=""${LOGO_ZOOM[it.id] ? ` style="scale:${LOGO_ZOOM[it.id]}"` : ""}><span>${esc(it.name)}</span></button>`
     : `<button class="tile" type="button" data-item="${k}" style="--c:${c[0]};--t:${c[1]}"><span>${esc(it.name)}</span></button>`; }).join("");
   orb.tiles = [...ring.children].map((el, k) => {
@@ -1341,9 +1174,9 @@ function showFrame(i) {
 }
 function openSheet(p, keep, at) {
   current = p; gal = p.gallery || []; if (!keep) frameNo = at || 0;
-  if (p.code === "WRK-01") { gal = [{ anim: true, caption: UI.ibxCap }]; if (!keep) frameNo = 0; }
-  if (p.code === "WRK-02") { gal = [{ tpl: true, caption: UI.tplCap }]; if (!keep) frameNo = 0; }
-  if (p.code === "TLS-01") { gal = [{ video: "videos/draw-c4-film.mp4", image: "images/projects/c4-film-poster.jpg", caption: UI.filmCap }, ...gal]; if (!keep && at) frameNo = at + 1; }
+  if (p.layout === "inbox") { gal = [{ anim: true, caption: p.caption }]; if (!keep) frameNo = 0; }
+  if (p.layout === "template") { gal = [{ tpl: true, caption: p.caption }]; if (!keep) frameNo = 0; }
+  if (p.film) { gal = [p.film, ...gal]; if (!keep && at) frameNo = at + 1; }
   const list = data.projects, n = list.indexOf(p), prev = list[(n - 1 + list.length) % list.length], next = list[(n + 1) % list.length];
   const points = (p.points || []).filter(x => !todo(x)), stack = (p.stack || []).map(id => findSkill(data, id)?.name || id), multi = gal.length > 1;
   sheet.innerHTML = `<div class="paper">
@@ -1355,9 +1188,9 @@ function openSheet(p, keep, at) {
           <div class="cap"><span class="t"></span>${multi ? `<button type="button" data-fstep="-1" aria-label="${t("prevF")}">‹</button>` : ""}<span class="no"></span>${multi ? `<button type="button" data-fstep="1" aria-label="${t("nextF")}">›</button>` : ""}</div>
           ${multi ? `<div class="thumbs">${gal.map((x, k) => `<button type="button" data-frame="${k}" aria-label="${esc(capOf(x))}"><img src="${esc(x.image)}" alt="">${x.video ? `<span aria-hidden="true">▶</span>` : ""}</button>`).join("")}</div>` : ""}
         </div>
-        <div class="sidecol">${p.code === "WRK-01" ? `<div class="sumbox"><h3>${t("summaryH")}</h3><dl class="rows">${UI.ibxRows.slice(0, 2).map(r => `<div><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}<div><dt>${t("result")}</dt><dd>${esc(tx(p.result))}</dd></div></dl></div><div class="acts" style="padding:0">${linkBtns(p, false)}</div>` : ""}${p.code === "WRK-02" ? `<div class="sumbox"><h3>${t("summaryH")}</h3><dl class="rows">${UI.tplRows.map(r => `<div><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}<div><dt>${t("result")}</dt><dd>${esc(tx(p.result))}</dd></div></dl></div><div class="acts" style="padding:0">${linkBtns(p, false)}</div>` : ""}${p.code === "TLS-01" ? `<div class="sumbox"><h3>${t("summaryH")}</h3><dl class="rows">${UI.toolRows.map(r => `<div><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}</dl></div><div class="acts" style="padding:0">${linkBtns(p, false)}</div>` : ""}${factList((p.facts || []).filter(f => !(p.code === "TLS-01" && ["EXAMPLE", "THEMES"].includes(String(f.label?.en ?? f.label).toUpperCase()))))}${p.code === "TLS-01" || p.code === "WRK-01" || p.code === "WRK-02" ? "" : `<div class="acts" style="padding:0">${linkBtns(p, false)}</div>`}</div>
+        <div class="sidecol">${p.layout === "inbox" ? `<div class="sumbox"><h3>${t("summaryH")}</h3><dl class="rows">${p.rows.slice(0, 2).map(r => `<div><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}<div><dt>${t("result")}</dt><dd>${esc(tx(p.result))}</dd></div></dl></div><div class="acts" style="padding:0">${linkBtns(p, false)}</div>` : ""}${p.layout === "template" ? `<div class="sumbox"><h3>${t("summaryH")}</h3><dl class="rows">${p.rows.map(r => `<div><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}<div><dt>${t("result")}</dt><dd>${esc(tx(p.result))}</dd></div></dl></div><div class="acts" style="padding:0">${linkBtns(p, false)}</div>` : ""}${p.layout === "tool" ? `<div class="sumbox"><h3>${t("summaryH")}</h3><dl class="rows">${p.rows.map(r => `<div><dt>${tx(r.k)}</dt><dd>${tx(r.v)}</dd></div>`).join("")}</dl></div><div class="acts" style="padding:0">${linkBtns(p, false)}</div>` : ""}${factList(p.facts || [])}${p.layout ? "" : `<div class="acts" style="padding:0">${linkBtns(p, false)}</div>`}</div>
       </div>
-      ${p.code === "WRK-01" ? renderStory(UI.ibxStory, p) : p.code === "WRK-02" ? renderStory(UI.tplStory, p) : p.code === "TLS-01" ? toolStory(p) : `      <div class="read">
+      ${p.layout === "tool" ? toolStory(p) : p.story ? renderStory(p.story, p) : `      <div class="read">
         ${todo(p.overview) ? "" : `<div><h3>${t("ovw")}</h3><p>${esc(tx(p.overview))}</p></div>`}
         ${points.length ? `<div><h3>${esc(tx(p.pointsTitle))}</h3><ol>${points.map(x => `<li><span>${esc(tx(x))}</span></li>`).join("")}</ol></div>` : ""}
         ${p.result ? `<div><h3>${t("result")}</h3><p>${esc(tx(p.result))}</p></div>` : ""}
